@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Laboppgave 2 - Kunst</title>
+</head>
+<body>
+    <label for="rate">Rate: </label>
+    <input type="number" min="0.001" max="0.999" id="rate" value="0.9"><br>
+    
+    <label for="calculations">Antall firkanter inni hverandre: </label>
+    <input type="number" min="1" id="calculations" value="20"><br>
+    
+    <label for="size">Antall firkanter ved siden av hverandre: </label>
+    <input type="number" min="1" id="size" value="4"><br>
+
+
+    <canvas id="myCanvas" width="600" height="600" style="border:1px solid #d3d3d3;"></canvas>
+    
+    <script src="functions.js"></script>
+    <script>
+        function Point(x, y) {
+            this.x = x,
+            this.y = y
+        };
+
+        function GenerateSquare(width, rate, numCalculations){
+            if (width <= 0){
+                return;
+            }
+            width = 600 / parseInt(width);
+            rate = 1-parseFloat(rate);
+            numCalculations = parseInt(numCalculations);
+
+            if (rate <= 0 || rate >= 1){
+                return;
+            }
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            for (let squareVertical = 0; squareVertical < width; squareVertical++){
+                for (let squareHorizontal = 0; squareHorizontal < width; squareHorizontal++){
+                    let nextIterator = (squareHorizontal % 2 == 0 && squareVertical % 2 != 0) || (squareHorizontal % 2 != 0 && squareVertical % 2 == 0) ? -1 : 1;
+                    let positions = [
+                        new Point(width*squareHorizontal, width*squareVertical), 
+                        new Point(width*squareHorizontal + width, width*squareVertical),
+                        new Point(width*squareHorizontal + width, width*squareVertical + width),
+                        new Point(width*squareHorizontal, width*squareVertical + width),
+                    ];
+        
+                    // ConnectDots([...positions.map(p => p.x), positions[0].x], [...positions.map(p => p.y), positions[0].y])
+                    ConnectDots(positions.map(p => p.x), positions.map(p => p.y))
+                    for (let i = 0; i < numCalculations; i ++){
+                        for (let posI = 0; posI < 4 ; posI++){
+                            let nextPos = posI + nextIterator;
+                            nextPos = (nextPos >= 4 ? 0 : (nextPos < 0 ? 3 : nextPos));
+                            positions[posI].x = positions[posI].x + rate*(positions[nextPos].x - positions[posI].x);
+                            positions[posI].y = positions[posI].y + rate*(positions[nextPos].y - positions[posI].y);
+                        };
+                        ConnectDots(positions.map(p => p.x), positions.map(p => p.y))
+                        // ConnectDots([...positions.map(p => p.x), positions[0].x], [...positions.map(p => p.y), positions[0].y])
+                    }
+                }
+            }
+
+        }
+        let canvas = document.getElementById("myCanvas");
+        let ctx = canvas.getContext("2d");
+
+        ctx.fillStyle = "red";
+        ctx.strokeStyle = "black";
+        ctx.lineWidth = 1;
+
+        let rateInput = document.getElementById("rate");
+        let sizeInput = document.getElementById("size");
+        let calculationsInput = document.getElementById("calculations");
+        
+        let newRate = rateInput.value;
+        let newSize = sizeInput.value;
+        let calculations = calculationsInput.value;
+
+        rateInput.addEventListener("change", (e)=>{
+            newRate = e.target.value
+            GenerateSquare(newSize, newRate, calculations);
+        })
+        sizeInput.addEventListener("change", (e)=>{
+            newSize = e.target.value
+            GenerateSquare(newSize, newRate, calculations);
+        })
+        calculationsInput.addEventListener("change", (e)=>{
+            calculations = e.target.value
+            GenerateSquare(newSize, newRate, calculations);
+        })
+        GenerateSquare(newSize, newRate, calculations);
+    </script>
+</body>
+</html>

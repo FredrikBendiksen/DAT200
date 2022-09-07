@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Laboppgave 2 - Kunst</title>
+</head>
+<body>
+    <label for="numPoints">Antall punkter: </label><input type="number" min="2" id="numPoints" value="16"><br>
+    <canvas id="myCanvas" width="600" height="600" style="border:1px solid #d3d3d3;"></canvas>
+    
+    <script>
+        function Point(x, y) {
+            this.x = x,
+            this.y = y
+        };
+
+        function GenerateCircle(numPoints){
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.beginPath();
+    
+            let step = 2*Math.PI / numPoints;
+
+            for (let v = 0; v <= 2*Math.PI+step; v = v+step){
+                let nextPoint = new Point(a*Math.cos(v), b*Math.sin(v));
+                ctx.lineTo(300+nextPoint.x, 300+nextPoint.y);
+            }
+            ctx.stroke();
+        }
+        let canvas = document.getElementById("myCanvas");
+        let ctx = canvas.getContext("2d");
+
+        ctx.fillStyle = "red";
+        ctx.strokeStyle = "black";
+        ctx.lineWidth = 1;
+
+        let a = 200;
+        let b = 200;
+
+        let numPointsInput = document.getElementById("numPoints");
+        numPointsInput.addEventListener("change", (e)=>{
+            GenerateCircle(e.target.value);
+        })
+        GenerateCircle(numPointsInput.value);
+    </script>
+</body>
+</html>

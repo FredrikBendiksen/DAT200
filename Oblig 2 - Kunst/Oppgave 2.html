@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Laboppgave 2 - Kunst</title>
+</head>
+<body>
+    <label for="numPoints">Antall punkter: </label>
+    <input type="number" min="2" id="numPoints" value="64">x<br>
+    <label for="kx">Trekk streker til: </label>
+    <input type="number" min="1" id="kx" value="2">kx<br>
+
+
+    <canvas id="myCanvas" width="600" height="600" style="border:1px solid #d3d3d3;"></canvas>
+    
+    <script>
+        function Point(x, y) {
+            this.x = x,
+            this.y = y
+        };
+
+        function GenerateCircle(numPoints, kx){
+            numPoints = parseInt(numPoints);
+            kx = parseInt(kx);
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.beginPath();
+    
+            let step = 2*Math.PI / numPoints;
+            let points = [];
+
+            for (let v = 0; v <= 2*Math.PI+step; v = v+step){
+                let nextPoint = new Point(300+a*Math.cos(v), 300+b*Math.sin(v));
+                points.push(nextPoint);
+                ctx.lineTo(nextPoint.x, nextPoint.y);
+            }
+            ctx.stroke();
+
+            if (kx <= 1){
+                return;
+            }
+            for(let i = 1; i <= points.length; i++){
+                let thisPoint = points[i-1];
+                let offset = i*kx;
+                while (offset > numPoints){
+                    offset -= numPoints;
+                }
+                let connectedPoint = points[offset-1];
+                if (typeof connectedPoint == "undefined"){
+                    debugger;
+                }
+                ctx.beginPath();
+                ctx.moveTo(thisPoint.x, thisPoint.y)
+                ctx.lineTo(connectedPoint.x, connectedPoint.y);
+                ctx.stroke();
+            }
+        }
+        let canvas = document.getElementById("myCanvas");
+        let ctx = canvas.getContext("2d");
+
+        ctx.fillStyle = "red";
+        ctx.strokeStyle = "black";
+        ctx.lineWidth = 1;
+
+        let a = 200;
+        let b = 200;
+
+        let numPointsInput = document.getElementById("numPoints");
+        let kxInput = document.getElementById("kx");
+        
+        let nPoints = numPointsInput.value;
+        let kx = kxInput.value;
+
+        numPointsInput.addEventListener("change", (e)=>{
+            nPoints = e.target.value
+            GenerateCircle(nPoints, kx);
+        })
+        kxInput.addEventListener("change", (e)=>{
+            kx = e.target.value
+            GenerateCircle(nPoints, kx);
+        })
+        GenerateCircle(nPoints, kx);
+    </script>
+</body>
+</html>
