@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Laboppgave 1 - Hus og Strikk</title>
+</head>
+<body>
+    <canvas id="myCanvas" width="600" height="600" style="border:1px solid #d3d3d3;">
+    </canvas>
+    
+    <script src="functions.js"></script>
+    <script>
+        function Point(x, y) {
+            this.x = x,
+            this.y = y
+        };
+        function Draw(point) {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.fillRect(100, 100, 400, 400);
+
+            ConnectDots([100, point.x], [300, point.y]);
+            ConnectDots([point.x, 500], [point.y, 300]);
+            ctx.beginPath();
+            ctx.arc(point.x,point.y,circleRadius,0,2*Math.PI);
+            ctx.stroke();
+        }
+        function IsCursorOnCenter(center, x, y){
+            return x <= (center.x + circleRadius) && x >= (center.x - circleRadius) && y <= (center.y + circleRadius) && y >= (center.y - circleRadius);
+        }
+
+        var canvas = document.getElementById("myCanvas");
+        var ctx = canvas.getContext("2d");
+
+        let centerPoint = new Point(300, 300);
+        let grabbing = false;
+
+        ctx.fillStyle = "red";
+        ctx.strokeStyle = "white";
+        ctx.lineWidth = 2;
+        let circleRadius = 8;
+
+        Draw(centerPoint, 300, 300);
+
+        canvas.addEventListener("mousedown", function (e) {
+            var currX = e.clientX - canvas.offsetLeft;
+            var currY = e.clientY - canvas.offsetTop;
+            if (IsCursorOnCenter(centerPoint, currX, currY)) {
+                grabbing = true;
+                canvas.style.cursor = "grabbing";
+            }
+        }, false);
+
+        canvas.addEventListener("mouseup", function (e) {
+            grabbing = false;
+            centerPoint.x = 300;
+            centerPoint.y = 300;
+            Draw(centerPoint);
+            canvas.style.cursor = "auto";
+        }, false);
+
+        canvas.addEventListener("mousemove", function (e) {
+            var currX = e.clientX - canvas.offsetLeft;
+            var currY = e.clientY - canvas.offsetTop;
+            if (grabbing){
+                centerPoint.x = currX;
+                centerPoint.y = currY;
+                Draw(centerPoint);
+            }
+            else {
+                if (IsCursorOnCenter(centerPoint, currX, currY)){
+                    canvas.style.cursor = "grab";
+                }
+                else {
+                    canvas.style.cursor = "auto";
+                }
+            }
+        }, false);
+    </script>
+</body>
+</html>
