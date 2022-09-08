@@ -50,7 +50,6 @@
                         new Point(width*squareHorizontal, width*squareVertical + width),
                     ];
         
-                    // ConnectDots([...positions.map(p => p.x), positions[0].x], [...positions.map(p => p.y), positions[0].y])
                     ConnectDots(positions.map(p => p.x), positions.map(p => p.y))
                     for (let i = 0; i < numCalculations; i ++){
                         for (let posI = 0; posI < 4 ; posI++){
@@ -60,7 +59,6 @@
                             positions[posI].y = positions[posI].y + rate*(positions[nextPos].y - positions[posI].y);
                         };
                         ConnectDots(positions.map(p => p.x), positions.map(p => p.y))
-                        // ConnectDots([...positions.map(p => p.x), positions[0].x], [...positions.map(p => p.y), positions[0].y])
                     }
                 }
             }

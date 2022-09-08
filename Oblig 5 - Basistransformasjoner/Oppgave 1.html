@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Laboppgave 5 - Basistransformasjoner</title>
+</head>
+<body>
+    <button id="newPolygonButton">Nytt polygon</button><br>
+    <button id="closePolygonButton">Close polygon</button><br>
+
+    <canvas id="myCanvas" width="600" height="600" style="border:1px solid #d3d3d3;"></canvas>
+    
+    <script>
+        function Point(x, y) {
+            this.x = x,
+            this.y = y
+        };
+        let canvas = document.getElementById("myCanvas");
+        let ctx = canvas.getContext("2d");
+
+        let circleRadius = 5;
+        function drawCircle(point){
+            ctx.beginPath();
+            ctx.arc(point.x, point.y, circleRadius, 0, 2*Math.PI);
+            ctx.stroke();
+        }
+
+        let closePolygonButton = document.getElementById("closePolygonButton");
+        let newPolygonButton = document.getElementById("newPolygonButton");
+
+        let drawing = false;
+        let points = [];
+
+        newPolygonButton.addEventListener("click", () => {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            drawing = true;
+        });
+        closePolygonButton.addEventListener("click", () => {
+            if (!drawing || points.length <= 1){
+                return;
+            }
+            ctx.lineTo(points[0].x, points[0].y);
+            ctx.stroke();
+            points = [];
+            drawing = false;
+        });
+        canvas.addEventListener("click", (e) => {
+            if (!drawing){
+                return;
+            }
+
+            var curX = e.clientX - canvas.offsetLeft;
+            var curY = e.clientY - canvas.offsetTop;
+            let newPoint = new Point(curX, curY);
+            
+            drawCircle(newPoint);
+            points.push(newPoint);
+            
+            if (points.length == 1){
+                ctx.moveTo(newPoint.x, newPoint.y);
+                return;
+            }
+
+            ctx.beginPath();
+            ctx.moveTo(points[0].x, points[0].y);
+            
+            for (let i = 1; i < points.length; i++){
+                ctx.lineTo(points[i].x, points[i].y);
+            }
+            ctx.stroke();
+        })
+
+
+        ctx.fillStyle = "red";
+        ctx.strokeStyle = "black";
+        ctx.lineWidth = 1;
+    </script>
+</body>
+</html>

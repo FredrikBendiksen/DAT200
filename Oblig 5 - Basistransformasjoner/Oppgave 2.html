@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Laboppgave 5 - Basistransformasjoner</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <button id="newPolygonButton">Nytt polygon</button>
+    <button id="closePolygonButton">Close polygon</button><br>
+
+    <button id="translatePolygonButton">Transler</button>
+    <label for="translatePolygonButton">Bruk musen til å flytte polygonet</label>
+    <br>
+    
+    <label for="degrees">Roter antall grader: </label><br>
+    <input type="number" name="degrees" id="degrees" value="20">
+    <button id="rotatePolygonButton">Roter</button><br>
+    
+    <label for="scalePercent">Skaler antall prosent</label><br>
+    <input type="number" name="scalePercent" id="scalePercent" value="110">
+    <button id="scalePolygonButton">Skaler</button>
+    <br>
+
+    <canvas id="myCanvas" width="600" height="600" style="border:1px solid #d3d3d3;"></canvas>
+    
+    <script src="functions.js"></script>
+    <script>
+        let canvas = document.getElementById("myCanvas");
+        let ctx = canvas.getContext("2d");
+
+        ctx.fillStyle = "red";
+        ctx.strokeStyle = "black";
+        ctx.lineWidth = 1;
+        let circleRadius = 5;
+
+        let closePolygonButton = document.getElementById("closePolygonButton");
+        let newPolygonButton = document.getElementById("newPolygonButton");
+        let degrees = document.getElementById("degrees");
+        let translatePolygonButton = document.getElementById("translatePolygonButton");
+        let scalePolygonButton = document.getElementById("scalePolygonButton");
+        let rotatePolygonButton = document.getElementById("rotatePolygonButton");
+
+        let mode = null;
+        let points = [];
+        let grabbedPoint = null;
+
+        function updateMode(newMode){
+            mode = newMode;
+            let buttons = [closePolygonButton, newPolygonButton, translatePolygonButton, scalePolygonButton, rotatePolygonButton];
+            buttons.forEach(btn => {
+                btn.classList.remove("selected");
+            });
+            switch (mode) {
+                case "drawing":
+                    newPolygonButton.classList.add("selected");
+                    break;
+                case "translating":
+                    translatePolygonButton.classList.add("selected");
+                    break;
+                case "scaling":
+                    scalePolygonButton.classList.add("selected");
+                    break;
+                case "rotating":
+                    rotatePolygonButton.classList.add("selected");
+                    break;
+            }
+        }
+
+        newPolygonButton.addEventListener("click", () => {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            points = [];
+            updateMode("drawing")
+        });
+        
+        function closePolygon(){
+            if (mode != "drawing" || points.length <= 1){
+                updateMode(null)
+                return;
+            }
+            redrawPolygon();
+            updateMode(null)
+        }
+        closePolygonButton.addEventListener("click", closePolygon);
+
+        function redrawPolygon(){
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ConnectPolygon(points);
+            points.forEach(point => {
+                drawCircle(point, circleRadius);
+            });
+        }
+
+        function addPoint(newPoint){
+            drawCircle(newPoint, circleRadius);
+            points.push(newPoint);
+            
+            if (points.length == 1){
+                ctx.moveTo(newPoint.x, newPoint.y);
+                return;
+            }
+
+            ctx.beginPath();
+            ctx.moveTo(points[0].x, points[0].y);
+            
+            for (let i = 1; i < points.length; i++){
+                ctx.lineTo(points[i].x, points[i].y);
+            }
+            ctx.stroke();
+        }
+
+        canvas.addEventListener("mousedown", (e) => {
+            var curX = e.clientX - canvas.offsetLeft;
+            var curY = e.clientY - canvas.offsetTop;
+            let clickedPoint = new Point(curX, curY);
+            
+            switch (mode) {
+                case "drawing":
+                    addPoint(clickedPoint);
+                    break;
+                case "rotating":
+                    drawCircle(getCenterPoint(points), circleRadius*1.5);
+                case "translating":
+                    drawCircle(clickedPoint, circleRadius*1.5);
+                    if (points.length >= 1){
+                        grabbedPoint = clickedPoint;
+                    }
+                    break;
+            }
+        })
+        canvas.addEventListener("mouseup", (e) => {
+            var curX = e.clientX - canvas.offsetLeft;
+            var curY = e.clientY - canvas.offsetTop;
+            let releasePoint = new Point(curX, curY);
+            
+            if (mode == "translating" && grabbedPoint !== null){
+                let factor = diff(grabbedPoint, releasePoint);
+
+                for (point of points){
+                    point.x += factor[0];
+                    point.y += factor[1];
+                }
+                redrawPolygon();
+                grabbedPoint = null;
+            }
+        })
+
+        translatePolygonButton.addEventListener("click", (e) => {
+            closePolygon();
+            updateMode("translating");
+        })
+        rotatePolygonButton.addEventListener("click", (e) => {
+            closePolygon();
+
+            let centerpoint = getCenterPoint(points);
+            let rad = degrees.value * (Math.PI / 180);
+
+            for (point of points){
+                let rotatedPoint = new Point(point.x, point.y);
+                rotatedPoint.x = centerpoint.x + (point.x - centerpoint.x)*Math.cos(rad) - (point.y - centerpoint.y)*Math.sin(rad);
+                rotatedPoint.y = centerpoint.y + (point.x - centerpoint.x)*Math.sin(rad) + (point.y - centerpoint.y)*Math.cos(rad);
+                point.x = rotatedPoint.x;
+                point.y = rotatedPoint.y;
+            }
+            redrawPolygon();
+        })
+        scalePolygonButton.addEventListener("click", (e) => {
+            closePolygon();
+
+            let centerpoint = getCenterPoint(points);
+            let scale = scalePercent.value / 100;
+
+            for (point of points){
+                point.x = point.x * scale + centerpoint.x * (1 - scale)
+                point.y = point.y * scale + centerpoint.y * (1 - scale)
+            }
+            redrawPolygon();
+        })
+    </script>
+</body>
+</html>
