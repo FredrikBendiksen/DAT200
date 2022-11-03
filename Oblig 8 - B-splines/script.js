@@ -54,12 +54,6 @@ function resetControlPoints()
 }
 
 
-// TOOD:
-// 1. Viser punktene valgt
-// 2. Viser rette streker mellom punktene
-// 3. User interface (copy fra forrige oblig)
-
-
 let canvas = document.getElementById("graphics");
 let graphics = canvas.getContext("2d");
 let newSpline = document.getElementById("newSpline");
