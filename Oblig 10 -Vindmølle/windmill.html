@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Oblig 10 | Windmill</title>
+  </head>
+  <body style="overflow: hidden; margin: 0; padding: 0">
+    <canvas id="cvs" style="display: block"></canvas>
+    <script type="module">
+      import * as THREE from "./three_js/three.module.js";
+      import { OrbitControls } from "./three_js/OrbitControls.js";
+      import * as dat from "./three_js/dat.gui.module.js";
+      import { GLTFLoader } from "./three_js/GLTFLoader.js";
+
+      const cvs = document.getElementById("cvs");
+
+      let scene = null,
+        renderer = null,
+        camera = null;
+      let aspectRatio = window.innerWidth / window.innerHeight;
+
+      function Init3DWorld() {
+        // Set up your world scene
+        scene = new THREE.Scene();
+        scene.background = new THREE.Color("#a0a0a0");
+        scene.fog = new THREE.Fog(0xa0a0a0, 400, 1400);
+
+        // Set up your scene light
+        AddLights();
+
+        // Setup Your scene camera
+        camera = new THREE.PerspectiveCamera(48, aspectRatio, 1, 2000);
+        camera.position.set(400, 200, 400);
+        camera.lookAt(0, 0, 0);
+
+        // Setup your scene ground
+        AddGroundPlane();
+
+        // Setup your scene models
+        LoadModels(scene);
+
+        // Set up your world renderer
+        const world = {
+          canvas: cvs,
+          antialias: true,
+        };
+        renderer = new THREE.WebGLRenderer(world);
+        renderer.setPixelRatio(aspectRatio);
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.shadowMap.enabled = true;
+
+        const controls = new OrbitControls(camera, renderer.domElement);
+        controls.target.set(0, 0, 0);
+        controls.update();
+
+        requestAnimationFrame(UpdateFrame);
+      }
+
+      function Resize(aWindow) {
+        aspectRatio = window.innerWidth / window.innerHeight;
+        camera.aspect = aspectRatio;
+        camera.updateProjectionMatrix();
+        renderer.setSize(aWindow.innerWidth, aWindow.innerHeight);
+      }
+
+      function UpdateFrame() {
+        renderer.render(scene, camera);
+        requestAnimationFrame(UpdateFrame);
+      }
+
+      function AddLights() {
+        const illumination = 3.5;
+        let light = new THREE.HemisphereLight("#f2a716", "#f2a716", 0, 5);
+        light.position.set(0, 500, 0);
+        scene.add(light);
+        // light = new THREE.HemisphereLightHelper(light, 10);
+        scene.add(light);
+
+        light = new THREE.DirectionalLight(0xffffff, illumination);
+        light.position.set(0, 400, 400);
+        light.castShadow = true;
+        light.shadow.camera.top = 400;
+        light.shadow.camera.bottom = -200;
+        light.shadow.camera.left = -400;
+        light.shadow.camera.right = 400;
+        light.shadow.camera.far = 2000;
+        light.shadow.mapSize.set(2048, 2048);
+        light.shadow.radius = 6;
+        light.shadowMapVisible = true;
+        scene.add(light);
+        // scene.add(new THREE.DirectionalLightHelper(light, 10, "#f2a716"));
+
+        // light = new THREE.SpotLight("#888", 1);
+        // light.position.set(100, 200, 100);
+        // light.castShadow = true;
+        // light.decay = 2;
+        // light.distance = 100000;
+        // light.lookAt(0, 0, 0);
+        // scene.add(light);
+        // scene.add(new THREE.SpotLightHelper(light, 0.5, "#f2a716"));
+    
+      }
+
+      function AddGroundPlane() {
+        const plane = new THREE.PlaneBufferGeometry(2000, 2000);
+        const matOption = { color: "#a6a6a6", depthWrite: false };
+        const mat = new THREE.MeshPhongMaterial(matOption);
+        const mesh = new THREE.Mesh(plane, mat);
+        mesh.position.y = 0.001; // so we're above the ground slightly
+        mesh.rotation.x = -Math.PI / 2;
+        mesh.receiveShadow = true;
+        scene.add(mesh);
+
+        const grid = new THREE.GridHelper(2000, 20, "#000000", "#9a9a9a");
+        grid.material.opacity = 0.2;
+        grid.material.transparent = true;
+        scene.add(grid);
+        // scene.add(new THREE.AxesHelper(200))
+      }
+
+      const WindmillParts = {
+        Base: null,
+        Blades: null,
+      };
+
+      const controlWindmillParts = {
+        Blades: 0
+      };
+
+      function LoadGUI() {
+        const step = 0.0005;
+        const max = 0.2, min = 0;
+        const gui = new dat.GUI({ autoPlace: true });
+        const folderBox = gui.addFolder("Vindmill");
+        folderBox.add(controlWindmillParts, "Blades", min, max, step);
+        folderBox.open();
+      }
+
+      function LoadModels() {
+        const loader = new GLTFLoader();
+        loader.load("model.gltf", GLTFLoadDone);
+      }
+
+      function GLTFLoadDone(GLTFStructure) {
+        GLTFStructure.scene.traverse(GLTFEachObject);
+
+        scene.add(GLTFStructure.scene);
+        setInterval(AnimateObjects, 1);
+      }
+
+      function GLTFEachObject(aObject) {
+        console.log(aObject);
+
+        aObject.castShadow = true;
+        aObject.receiveShadow = true;
+        WindmillParts[aObject.name] = aObject;
+      }
+
+      function AnimateObjects() {
+        WindmillParts.Blades.rotation.y += controlWindmillParts.Blades;
+      }
+
+      function onWindowResize() {
+        World3D.Resize(window);
+      }
+
+      window.addEventListener("resize", onWindowResize, false);
+
+      Init3DWorld(cvs);
+      LoadGUI();
+    </script>
+  </body>
+</html>
